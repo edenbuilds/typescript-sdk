@@ -109,6 +109,18 @@ describe('UriTemplate', () => {
             const match = template.match('/red,green,blue');
             expect(match).toEqual({ list: ['red', 'green', 'blue'] });
         });
+
+        it('should decode percent-encoded variable values', () => {
+            const template = new UriTemplate('file:///{path}');
+            expect(template.match('file:///My%20File.txt')).toEqual({ path: 'My File.txt' });
+        });
+
+        it('should decode each value in exploded arrays', () => {
+            const template = new UriTemplate('{/list*}');
+            expect(template.match('/red%20team,blue%2Fteam')).toEqual({
+                list: ['red team', 'blue/team']
+            });
+        });
     });
 
     describe('edge cases', () => {

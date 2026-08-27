@@ -277,12 +277,20 @@ export class UriTemplate {
         if (!match) return null;
 
         const result: Variables = {};
+        const decodeValue = (value: string): string => {
+            try {
+                return decodeURIComponent(value);
+            } catch {
+                // Keep matching malformed URI components non-throwing.
+                return value;
+            }
+        };
         for (const [i, name_] of names.entries()) {
             const { name, exploded } = name_!;
             const value = match[i + 1]!;
             const cleanName = name.replace('*', '');
 
-            result[cleanName] = exploded && value.includes(',') ? value.split(',') : value;
+            result[cleanName] = exploded && value.includes(',') ? value.split(',').map(decodeValue) : decodeValue(value);
         }
 
         return result;
