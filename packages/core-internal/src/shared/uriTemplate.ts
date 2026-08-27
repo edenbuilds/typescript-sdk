@@ -7,6 +7,15 @@ const MAX_VARIABLE_LENGTH = 1_000_000; // 1MB
 const MAX_TEMPLATE_EXPRESSIONS = 10_000;
 const MAX_REGEX_LENGTH = 1_000_000; // 1MB
 
+function decodeUriComponent(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        // Keep matching malformed URI components non-throwing.
+        return value;
+    }
+}
+
 export class UriTemplate {
     /**
      * Returns true if the given string contains any URI template expressions.
@@ -277,20 +286,13 @@ export class UriTemplate {
         if (!match) return null;
 
         const result: Variables = {};
-        const decodeValue = (value: string): string => {
-            try {
-                return decodeURIComponent(value);
-            } catch {
-                // Keep matching malformed URI components non-throwing.
-                return value;
-            }
-        };
         for (const [i, name_] of names.entries()) {
             const { name, exploded } = name_!;
             const value = match[i + 1]!;
             const cleanName = name.replace('*', '');
 
-            result[cleanName] = exploded && value.includes(',') ? value.split(',').map(decodeValue) : decodeValue(value);
+            result[cleanName] =
+                exploded && value.includes(',') ? value.split(',').map(item => decodeUriComponent(item)) : decodeUriComponent(value);
         }
 
         return result;
